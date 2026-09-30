@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+const url='http://127.0.0.1:5173';
+const login=await fetch(url+'/signin-with-chatgpt?return_to=/',{redirect:'manual'});
+const cookie=login.headers.get('set-cookie').split(';')[0];
+const get=async()=>await (await fetch(url+'/api/state',{headers:{cookie}})).json();
+const s=await get();
+const post=async(a)=>{const r=await fetch(url+'/api/state',{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify({dayId:s.day.id,revision:s.revision,opId:crypto.randomUUID(),...a})});return {status:r.status,data:await r.json()}};
+const before=s.day.stock.shambar;
+const results=await Promise.all([post({type:'order',table:1,notes:'Prueba de concurrencia A',lines:[{productId:'shambar',qty:1,price:1800}]}),post({type:'order',table:2,notes:'Prueba de concurrencia B',lines:[{productId:'shambar',qty:1,price:1800}]})]);
+assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+const final=await get();assert.equal(final.day.stock.shambar,before-1);
+assert.equal(final.day.orders[0].payments[0].cash,2000);
+assert.equal(final.day.orders[0].payments[0].yape,2300);
+assert.equal(final.day.orders[0].payments[0].change,3000);
+console.log('API: concurrency conflict handled; one stock reservation persisted; payment and change persisted.');
