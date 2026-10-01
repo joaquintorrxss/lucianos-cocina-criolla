@@ -7,8 +7,9 @@ const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache
 async function state(id:string|null){
  const db=database();
  const list=await db.prepare('SELECT id,date,active FROM days ORDER BY date DESC').all();
- const row:any=id?await db.prepare('SELECT * FROM days WHERE id=?').bind(id).first():await db.prepare('SELECT * FROM days ORDER BY active DESC,date DESC LIMIT 1').first();
- return {days:list.results,day:row?JSON.parse(row.payload):null,revision:row?.revision??0};
+ const row:any=id?await db.prepare('SELECT * FROM days WHERE id=?').bind(id).first():await db.prepare('SELECT * FROM days WHERE active=1 LIMIT 1').first();
+ const latest:any=row??await db.prepare('SELECT payload FROM days ORDER BY date DESC LIMIT 1').first();
+ return {days:list.results,day:row?JSON.parse(row.payload):null,revision:row?.revision??0,lastPrices:latest?JSON.parse(latest.payload).prices:undefined};
 }
 export async function GET(req:Request){
  try {
