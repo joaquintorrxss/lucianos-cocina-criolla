@@ -1,0 +1,16 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "lucianos-d1-admin",
+	"account_id": "4c014cfa178db72a396081d8d33538f6",
+	"compatibility_date": "2026-10-02",
+	"workers_dev": false,
+	"preview_urls": false,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "lucianos-produccion",
+			"database_id": "e539eb6d-8280-41b7-b8a3-f5ce0f447938",
+			"migrations_dir": "drizzle"
+		}
+	]
+}

@@ -55,15 +55,28 @@ Fuentes oficiales:
 
 ## Cloudflare
 
-Wrangler ya está instalado como dependencia del proyecto. La revisión inicial
-indicó que esta computadora todavía no está autenticada con Cloudflare.
-El usuario confirmó que todavía no tiene una cuenta de Cloudflare. Se preparó
-el enlace `https://dash.cloudflare.com/sign-up` para que cree su cuenta
-personalmente y verifique su correo. Todavía no se ha creado una base remota,
-Worker ni configuración de acceso privado del usuario.
+Wrangler está instalado como dependencia del proyecto y quedó vinculado mediante
+OAuth con la cuenta creada por el usuario el 2 de octubre de 2026.
 
-Después de crear la cuenta y verificar el correo, se vinculará Wrangler mediante
-el navegador y se comprobará la cuenta exacta antes de crear recursos.
+- Usuario: `joaquintorress1205@gmail.com`.
+- Cuenta comprobada con `whoami --json`: `4c014cfa178db72a396081d8d33538f6`.
+- Base D1 nueva: `lucianos-produccion`, ID `e539eb6d-8280-41b7-b8a3-f5ce0f447938`.
+- Migración aplicada: `drizzle/0000_puzzling_zaladane.sql`.
+- Verificación: esquema e índices correctos; cero jornadas y sin migraciones pendientes.
+- No se ha publicado un Worker propio ni configurado todavía Cloudflare Access.
+
+La vinculación usó los permisos `account:read`, `user:read`, `workers:write`,
+`workers_scripts:write`, `d1:write` y `offline_access`. No se copiaron tokens al
+repositorio ni al chat. Wrangler gestiona sus credenciales fuera del proyecto.
+
+El primer intento agotó el plazo de espera de autorización. La vinculación
+se completó al reiniciar el receptor local en `127.0.0.1`. Para volver a vincular
+desde PowerShell si alguna vez es necesario:
+
+```powershell
+node node_modules/wrangler/bin/wrangler.js login --callback-host 127.0.0.1 --scopes account:read user:read workers:write workers_scripts:write d1:write
+node node_modules/wrangler/bin/wrangler.js whoami --json
+```
 El registro de la cuenta no requiere agregar un dominio.
 
 Guía oficial de registro:
@@ -77,5 +90,7 @@ su base de datos.
 
 Subida inicial verificada: `main` y `codex/migracion-independiente` apuntaron
 al commit `a46a2f7814e6696ad0b466e77c17d8c71f587291`. La documentación puede
-avanzar en commits posteriores. El registro de Cloudflare queda pendiente del usuario.
+avanzar en commits posteriores. Cloudflare ya está vinculada y la nueva D1 tiene
+su estructura preparada. La conexión del Worker, el acceso privado y la
+importación de datos reales siguen pendientes; ver `docs/BASE_DE_DATOS.md`.
 El sistema publicado sigue siendo la instancia que recibe las ventas reales.

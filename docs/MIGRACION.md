@@ -8,6 +8,8 @@
 - Original local: `../sistema`.
 - Copia de trabajo: esta carpeta; rama `codex/migracion-independiente`.
 - Repositorio privado propio: `https://github.com/joaquintorrxss/lucianos-cocina-criolla`, remoto `origin`.
+- Cuenta Cloudflare propia vinculada: `4c014cfa178db72a396081d8d33538f6`.
+- D1 nueva: `lucianos-produccion`, ID `e539eb6d-8280-41b7-b8a3-f5ce0f447938`, esquema aplicado y cero jornadas.
 - Respaldo privado: `../respaldos/2026-10-02-inicio/`. No subir a GitHub las exportaciones de ventas.
 
 La primera etapa conserva los archivos de la aplicación. La copia aún contiene configuración y autenticación de Sites y NO está lista para publicar directamente en una cuenta propia. El historial de Git se conservó para comparar y revertir cambios.
@@ -32,12 +34,16 @@ Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegad
 1. Completar el inicio de sesión de Codex en VS Code.
 2. Elegir o crear las cuentas propias de GitHub y Cloudflare. Autenticarse mediante los mecanismos oficiales; no compartir contraseñas por chat.
 
-   GitHub ya está autenticada como `joaquintorrxss` mediante autorización del usuario en el navegador. Herramienta oficial instalada de forma portable, con credenciales en el almacén seguro de Windows. Consultar `docs/CUENTAS.md` para el estado y los comandos. Cloudflare sigue sin autenticar.
+   GitHub está autenticada como `joaquintorrxss` y Cloudflare como `joaquintorress1205@gmail.com`, ambas mediante OAuth. Consultar `docs/CUENTAS.md` para el estado y los comandos.
 3. Crear el repositorio privado en la cuenta elegida y asociarlo únicamente a esta copia. Revisar archivos y excluir secretos y datos antes del primer push.
 
    Repositorio privado creado y `origin` vinculado a la cuenta del usuario. Los respaldos, bases locales y credenciales están excluidos de Git. Verificar las referencias remotas después de cada push.
 4. Sustituir la configuración de Sites por configuración explícita del Worker propio y una base D1 nueva. No reutilizar IDs de recursos del sistema vigente.
+
+   La D1 nueva ya está creada y tiene el esquema aplicado. `wrangler.d1.json` permite administrarla; todavía no sustituye la configuración de la aplicación ni del Worker. Ver `docs/BASE_DE_DATOS.md`.
 5. Sustituir el inicio de sesión de Sites. La propuesta es Cloudflare Access con correos autorizados, validación del token en backend y acceso cerrado cuando falte configuración. Confirmar los correos con el usuario.
+
+   El usuario quiere su correo `joaquintorress1205@gmail.com` y otros que proporcionará. La lista adicional está pendiente; el acceso privado todavía no está configurado.
 6. Importar una copia completa de los registros reales a la nueva D1 y cotejar IDs, revisiones, pedidos, importes históricos y arqueos. No importar datos de prueba locales.
 7. Probar la instancia nueva: registro, detalle por plato, entregas, cobros, vuelto, caja, historial, filtros y PDF. Los ensayos de ventas deben realizarse en una base de prueba.
 8. Entre jornadas, actualizar el respaldo de producción, importar los últimos cambios, comprobar totales y cambiar la dirección que usa el restaurante. Mantener una única instancia activa para ventas.
@@ -58,7 +64,7 @@ El archivo `datos-produccion.json`, cuando la exportación esté verificada, con
 Comprobaciones de la preparación local: extensión oficial `openai.chatgpt` instalada (versión 26.930.21537), dependencias instaladas con `npm ci`, 27 pruebas aprobadas, TypeScript sin errores y build completo. Se creó únicamente el esquema en D1 local. Las API de estado e historial respondieron HTTP 200 con sesión local; sin sesión, estado respondió HTTP 401. No se modificaron componentes, CSS ni reglas de negocio. El checkout original mantuvo el mismo commit y estado Git limpio.
 
 - Instalar la extensión no publica el sitio ni migra la base.
-- GitHub propia ya está vinculada y tiene un repositorio privado del proyecto. Todavía no se ha vinculado la cuenta Cloudflare ni creado un recurso Cloudflare propio del usuario.
+- GitHub propia y Cloudflare están vinculadas. La D1 propia está creada con esquema e índices verificados y cero jornadas. Todavía no se ha publicado el Worker ni configurado el acceso privado del usuario.
 - El acceso simulado de desarrollo solo sirve para pruebas en localhost y no sustituye autenticación de producción.
 - Los reportes WhatsApp siguen usando los números personales confirmados y requieren compartir el PDF; no hay API Business para enviar adjuntos automáticamente.
 - Antes de desplegar, retirar el identificador del proyecto de Sites de esta copia y documentar los recursos nuevos. No modificar ese identificador en el checkout original.

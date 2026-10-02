@@ -12,7 +12,10 @@
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "db:init:local": "node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_puzzling_zaladane.sql"
+    "db:init:local": "node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_puzzling_zaladane.sql",
+    "db:status:remote": "node node_modules/wrangler/bin/wrangler.js d1 execute lucianos-produccion --remote --config wrangler.d1.json --command \"SELECT COUNT(*) AS jornadas FROM days;\"",
+    "db:migrations:remote": "node node_modules/wrangler/bin/wrangler.js d1 migrations list lucianos-produccion --remote --config wrangler.d1.json",
+    "db:migrate:remote": "node node_modules/wrangler/bin/wrangler.js d1 migrations apply lucianos-produccion --remote --config wrangler.d1.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
