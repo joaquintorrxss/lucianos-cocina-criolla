@@ -5,6 +5,7 @@ import {money,total,paid,type Day,type Order} from '@/lib/model';
 import {dayAccounting,stages,orderStage} from '@/lib/accounting';
 import {businessReport,filterDays,reportOrders,cashLedger,type ReportFilters} from '@/lib/reports';
 import {ServiceCard,OrderDetail,type OrderCallbacks} from './order-tools';
+import {ReportDialog} from './report-delivery';
 
 const dateLabel=(date:string)=>new Date(date+'T12:00:00-05:00').toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Lima'});
 const clock=(at:string)=>new Date(at).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',timeZone:'America/Lima'});
@@ -15,6 +16,7 @@ type Detail=(day:Day,order?:Order)=>void;
 export default function Reports({initialTab,refresh}:{initialTab:Tab;refresh:number}){
  const [days,setDays]=useState<Day[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const [tab,setTab]=useState<Tab>(initialTab),[filters,setFilters]=useState<ReportFilters>({date:'',menu:'Todos',status:initialTab==='Jornadas'?'Cerradas':'Todas'});
+ const [reportDay,setReportDay]=useState<Day|null>(null);
  const [detail,setDetail]=useState<{day:Day;order?:Order}|null>(null);
  useEffect(()=>{
   let disposed=false;let controller:AbortController|undefined;
@@ -44,8 +46,9 @@ export default function Reports({initialTab,refresh}:{initialTab:Tab;refresh:num
    {tab==='Resumen'&&<SummaryView days={selected}/>}
    {tab==='Pedidos'&&<OrdersView days={selected} onDetail={onDetail}/>}
    {tab==='Caja'&&<CashView days={selected}/>}
-   {tab==='Jornadas'&&<JournalList days={selected} onDetail={onDetail}/>}
+   {tab==='Jornadas'&&<JournalList days={selected} onDetail={onDetail} onReport={setReportDay}/>}
   </>}
+  {reportDay&&<ReportDialog day={reportDay} onClose={()=>setReportDay(null)}/>}
   {detail&&<ArchiveDialog day={detail.day} initialOrder={detail.order} onClose={()=>setDetail(null)}/>}
  </section>;
 }
@@ -82,8 +85,8 @@ function CashView({days}:{days:Day[]}){
  </>;
 }
 
-function JournalList({days,onDetail}:{days:Day[];onDetail:Detail}){
- return <div className="journal-list">{days.map(day=>{const r=dayAccounting(day);return <article className="journal-card" key={day.id}><div className="journal-heading"><div><span className="eyebrow">{day.menu}</span><h2>{dateLabel(day.date)}</h2></div><span className={'badge '+(day.closed?'settled':'amber')}>{day.closed?'Cerrada':'En servicio'}</span></div><div className="journal-metrics"><div><span>Ventas</span><b>{money(r.sales)}</b></div><div><span>Efectivo de ventas</span><b>{money(r.cashSales)}</b></div><div><span>Yape</span><b>{money(r.yape)}</b></div><div><span>Caja esperada</span><b>{money(r.expected)}</b></div><div><span>Caja contada</span><b>{day.counted!==null?money(day.counted):'Sin cierre'}</b></div><div><span>Diferencia de cierre</span><b>{day.counted!==null?money(day.counted-r.expected):'—'}</b></div></div><button className="secondary full" onClick={()=>onDetail(day)} aria-label={`Ver jornada del ${dateLabel(day.date)}`}>Ver jornada y sus registros</button></article>;})}</div>;
+function JournalList({days,onDetail,onReport}:{days:Day[];onDetail:Detail;onReport:(day:Day)=>void}){
+ return <div className="journal-list">{days.map(day=>{const r=dayAccounting(day);return <article className="journal-card" key={day.id}><div className="journal-heading"><div><span className="eyebrow">{day.menu}</span><h2>{dateLabel(day.date)}</h2></div><span className={'badge '+(day.closed?'settled':'amber')}>{day.closed?'Cerrada':'En servicio'}</span></div><div className="journal-metrics"><div><span>Ventas</span><b>{money(r.sales)}</b></div><div><span>Efectivo de ventas</span><b>{money(r.cashSales)}</b></div><div><span>Yape</span><b>{money(r.yape)}</b></div><div><span>Caja esperada</span><b>{money(r.expected)}</b></div><div><span>Caja contada</span><b>{day.counted!==null?money(day.counted):'Sin cierre'}</b></div><div><span>Diferencia de cierre</span><b>{day.counted!==null?money(day.counted-r.expected):'—'}</b></div></div><button className="secondary full" onClick={()=>onDetail(day)} aria-label={`Ver jornada del ${dateLabel(day.date)}`}>Ver jornada y sus registros</button>{day.closed&&<button className="primary full journal-report-button" onClick={()=>onReport(day)} aria-label={`Reporte PDF y WhatsApp del ${dateLabel(day.date)}`}>Reporte PDF y WhatsApp</button>}</article>;})}</div>;
 }
 
 function ArchiveDialog({day,initialOrder,onClose}:{day:Day;initialOrder?:Order;onClose:()=>void}){
