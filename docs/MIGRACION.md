@@ -30,6 +30,8 @@ Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegad
 
 1. Completar el inicio de sesión de Codex en VS Code.
 2. Elegir o crear las cuentas propias de GitHub y Cloudflare. Autenticarse mediante los mecanismos oficiales; no compartir contraseñas por chat.
+
+   Cuenta GitHub elegida: `joaquintorrxss`. Herramienta oficial instalada de forma portable; vinculación mediante autorización en el navegador. Consultar `docs/CUENTAS.md` para el estado y los comandos. Cloudflare sigue sin autenticar.
 3. Crear el repositorio privado en la cuenta elegida y asociarlo únicamente a esta copia. Revisar archivos y excluir secretos y datos antes del primer push.
 4. Sustituir la configuración de Sites por configuración explícita del Worker propio y una base D1 nueva. No reutilizar IDs de recursos del sistema vigente.
 5. Sustituir el inicio de sesión de Sites. La propuesta es Cloudflare Access con correos autorizados, validación del token en backend y acceso cerrado cuando falte configuración. Confirmar los correos con el usuario.
