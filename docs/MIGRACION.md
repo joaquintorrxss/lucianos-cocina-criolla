@@ -44,6 +44,8 @@ Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegad
 5. Sustituir el inicio de sesión de Sites. La propuesta es Cloudflare Access con correos autorizados, validación del token en backend y acceso cerrado cuando falte configuración. Confirmar los correos con el usuario.
 
    El usuario quiere su correo `joaquintorress1205@gmail.com` y otros que proporcionará. La lista adicional está pendiente; el acceso privado todavía no está configurado.
+
+   Después consultó si podía usar credenciales ficticias únicas, como `lucianos@sistema.com`. Se explicó la alternativa de acceso propio con usuario y contraseña, que admite identificadores internos sin buzón real. El PIN por correo de Cloudflare Access requiere recibir el código en un correo real. Falta elegir el método antes de implementar la autenticación; no pedir otros correos si finalmente elige usuarios internos.
 6. Importar una copia completa de los registros reales a la nueva D1 y cotejar IDs, revisiones, pedidos, importes históricos y arqueos. No importar datos de prueba locales.
 7. Probar la instancia nueva: registro, detalle por plato, entregas, cobros, vuelto, caja, historial, filtros y PDF. Los ensayos de ventas deben realizarse en una base de prueba.
 8. Entre jornadas, actualizar el respaldo de producción, importar los últimos cambios, comprobar totales y cambiar la dirección que usa el restaurante. Mantener una única instancia activa para ventas.
