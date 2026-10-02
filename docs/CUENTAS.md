@@ -57,12 +57,25 @@ Fuentes oficiales:
 
 Wrangler ya está instalado como dependencia del proyecto. La revisión inicial
 indicó que esta computadora todavía no está autenticada con Cloudflare.
-La cuenta se seleccionará y vinculará después de GitHub. Todavía no se ha
-creado una base remota, Worker ni configuración de acceso privado del usuario.
+El usuario confirmó que todavía no tiene una cuenta de Cloudflare. Se preparó
+el enlace `https://dash.cloudflare.com/sign-up` para que cree su cuenta
+personalmente y verifique su correo. Todavía no se ha creado una base remota,
+Worker ni configuración de acceso privado del usuario.
+
+Después de crear la cuenta y verificar el correo, se vinculará Wrangler mediante
+el navegador y se comprobará la cuenta exacta antes de crear recursos.
+El registro de la cuenta no requiere agregar un dominio.
+
+Guía oficial de registro:
+https://developers.cloudflare.com/fundamentals/account/create-account/
 
 ## Estado
 
 GitHub vinculada y repositorio privado creado. Comprobar las referencias remotas
 al terminar cada subida; crear el repositorio no publica una aplicación ni migra
 su base de datos.
+
+Subida inicial verificada: `main` y `codex/migracion-independiente` apuntaron
+al commit `a46a2f7814e6696ad0b466e77c17d8c71f587291`. La documentación puede
+avanzar en commits posteriores. El registro de Cloudflare queda pendiente del usuario.
 El sistema publicado sigue siendo la instancia que recibe las ventas reales.
