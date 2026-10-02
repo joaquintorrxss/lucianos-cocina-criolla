@@ -44,3 +44,11 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+# Never commit restaurant exports or deployment credentials.
+/respaldos/
+/backups/
+/datos-produccion.*
+/manifest-datos.json
+/.dev.vars*
+/tsconfig.tsbuildinfo
