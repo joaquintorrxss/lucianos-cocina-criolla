@@ -26,12 +26,25 @@ El usuario inicia sesión y autoriza GitHub CLI personalmente en el navegador.
 No guardar códigos temporales ni tokens en este repositorio. Confirmar que
 la cuenta autenticada sea `joaquintorrxss` antes de crear o subir el repositorio.
 
-Destino previsto: repositorio privado `joaquintorrxss/lucianos-cocina-criolla`.
-Su existencia y la vinculación definitiva se comprobarán después del inicio de
-sesión. Si existe un repositorio con ese nombre, revisar su contenido antes de
-usarlo: no sobrescribirlo ni forzar un push.
+Repositorio creado y comprobado como privado:
+`https://github.com/joaquintorrxss/lucianos-cocina-criolla`.
+El remoto `origin` de esta copia apunta a ese repositorio. La cuenta autenticada
+es `joaquintorrxss`; GitHub CLI confirmó almacenamiento de credenciales en el
+almacén seguro de Windows (`keyring`).
 
-Se revisaron los ocho commits existentes buscando patrones de claves privadas
+Se usa `main` como rama principal de la copia preparada y
+`codex/migracion-independiente` para continuar la migración. El checkout original
+mantiene sus propios remotos y ramas.
+
+Para comprobar los cambios subidos:
+
+```powershell
+git remote -v
+git status
+git ls-remote origin refs/heads/main refs/heads/codex/migracion-independiente
+```
+
+Se revisaron los ocho commits originales buscando patrones de claves privadas
 y tokens habituales de GitHub/OpenAI, sin coincidencias. Esta revisión no es
 una garantía de detectar cualquier secreto; mantener las exclusiones de `.env`,
 `.dev.vars`, `.wrangler`, dependencias y exportaciones de ventas.
@@ -49,6 +62,7 @@ creado una base remota, Worker ni configuración de acceso privado del usuario.
 
 ## Estado
 
-GitHub CLI preparada; autorización del usuario en curso. No dar por creado
-el repositorio ni por subidos los archivos hasta verificar la operación remota.
+GitHub vinculada y repositorio privado creado. Comprobar las referencias remotas
+al terminar cada subida; crear el repositorio no publica una aplicación ni migra
+su base de datos.
 El sistema publicado sigue siendo la instancia que recibe las ventas reales.
