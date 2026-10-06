@@ -1,6 +1,7 @@
+import {safeAuthOrigin} from '@/lib/auth-http';
 import {database} from '@/db/raw';
 import {applyAction,openDay} from '@/lib/model';
-import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {getCurrentUser} from '@/app/auth';
 import {isDayConflict,isStorageFailure} from '@/lib/storage-errors';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
@@ -13,15 +14,14 @@ async function state(id:string|null){
 }
 export async function GET(req:Request){
  try {
-  if(!await getChatGPTUser())return json({error:'Inicia sesión para abrir Lucianos.'},401);
+  if(!await getCurrentUser())return json({error:'Inicia sesión para abrir Lucianos.'},401);
   return json(await state(new URL(req.url).searchParams.get('id')));
  }catch(e){console.error(e);return json({error:'No se pudieron cargar los registros. Intenta nuevamente.'},503);}
 }
 export async function POST(req:Request){
  try{
-  if(!await getChatGPTUser())return json({error:'Inicia sesión para guardar los cambios.'},401);
-  const origin=req.headers.get('origin');
-  if(origin&&origin!==new URL(req.url).origin)return json({error:'Origen no permitido.'},403);
+  if(!await getCurrentUser())return json({error:'Inicia sesión para guardar los cambios.'},401);
+  if(!safeAuthOrigin(req))return json({error:'Origen no permitido.'},403);
   if(Number(req.headers.get('content-length')??0)>100000)return json({error:'El pedido es demasiado grande.'},413);
   const a:any=await req.json();const db=database();
   if(a.type==='open'){

@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "lucianos-cocina-criolla",
+  "account_id": "4c014cfa178db72a396081d8d33538f6",
+  "main": "./build/worker.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "lucianos-produccion",
+    "database_id": "e539eb6d-8280-41b7-b8a3-f5ce0f447938",
+    "migrations_dir": "drizzle"
+  }]
+}

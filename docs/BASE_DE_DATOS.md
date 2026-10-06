@@ -11,10 +11,12 @@ La nueva base `lucianos-produccion` ya está creada y tiene el esquema aplicado:
 - Configuración de administración: `wrangler.d1.json`.
 - Migración: `0000_puzzling_zaladane.sql`, registrada en `d1_migrations`.
 - Comprobación remota del 2 de octubre de 2026: tabla, columnas e índices
-  correctos, cero jornadas y ninguna migración pendiente.
+  correctos, cero jornadas y ninguna migración pendiente en esa fecha.
+- Comprobación del 6 de octubre: migración de autenticación aplicada, una sola cuenta general activa y cero jornadas.
 
-Durante esta etapa se crea únicamente la estructura. Los pedidos históricos
-permanecen en el sitio original hasta obtener su exportación completa y cotejarla.
+Durante esta etapa se crean la estructura y la cuenta general del equipo. Los pedidos históricos
+permanecen en el sitio original. El usuario eligió empezar desde cero en la nueva
+base; no se exportarán ni importarán esos registros.
 
 ## Qué guarda la base
 
@@ -50,10 +52,9 @@ La base no se conecta directamente al navegador mediante una contraseña.
 El Worker la obtiene por el enlace `DB`; los permisos de administración quedan
 en la cuenta Cloudflare y en las herramientas de desarrollo.
 
-La conexión actual de la aplicación todavía corresponde a la preparación local
-de Sites. Preparar una D1 propia no cambia automáticamente esa conexión ni hace
-que la copia esté lista para atender clientes. La configuración del Worker y
-su autenticación privada se adaptarán antes de publicar.
+La aplicación usa `wrangler.jsonc`, vinculada a la D1 propia. Desarrollo utiliza
+una D1 local separada. El acceso propio con contraseña se describe en
+`docs/ACCESO.md`. El Worker propio está publicado y su conexión a D1 verificada por HTTPS.
 
 `wrangler.d1.json` contiene los identificadores de esta cuenta y su nueva base.
 Sirve para los comandos de administración de D1. No incluye una entrada de
@@ -100,9 +101,10 @@ SELECT COUNT(*) AS jornadas FROM days;
 ## Estado y límites
 
 - La base local del proyecto está separada de la base remota.
-- La base remota propia ya está creada y comprobada, pero todavía está vacía.
-- El traslado de datos históricos sigue pendiente de una exportación completa autenticada.
-- No se ha publicado un Worker propio ni cambiado el sitio donde se registran ventas.
+- La base remota propia tiene cero jornadas y una sola cuenta general activa.
+- La migración `0001_typical_nighthawk.sql` crea las tablas `auth_users`, `auth_sessions` y `auth_attempts`; no contiene contraseñas.
+- El usuario decidió iniciar desde cero: NO hay traslado de datos históricos pendiente.
+- Worker propio publicado en `https://lucianos-cocina-criolla.joaquintorress1205.workers.dev`, con acceso general protegido. La nueva instancia comienza desde cero. El sitio anterior se conserva sin modificar ni borrar sus registros.
 
 Referencias oficiales:
 - https://developers.cloudflare.com/d1/get-started/

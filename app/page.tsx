@@ -1,2 +1,5 @@
 import Workspace from './workspace';
-export default function Page(){return <Workspace/>}
+import {getCurrentUser} from './auth';
+import {redirect} from 'next/navigation';
+export const dynamic='force-dynamic';
+export default async function Page(){if(!await getCurrentUser())redirect('/login');return <Workspace/>;}

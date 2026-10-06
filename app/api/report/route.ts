@@ -1,5 +1,5 @@
 import {database} from '@/db/raw';
-import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {getCurrentUser} from '@/app/auth';
 import {createOrderReport} from '@/lib/order-report';
 import {reportFilename} from '@/lib/report-sharing';
 import type {Day} from '@/lib/model';
@@ -10,7 +10,7 @@ export const dynamic='force-dynamic';
 const json=(error:string,status:number)=>Response.json({error},{status,headers:{'Cache-Control':'private, no-store'}});
 export async function GET(req:Request){
  try{
-  if(!await getChatGPTUser())return json('Inicia sesión para descargar el reporte.',401);
+  if(!await getCurrentUser())return json('Inicia sesión para descargar el reporte.',401);
   const url=new URL(req.url),id=url.searchParams.get('dayId');
   if(!id||id.length>100)return json('Selecciona una jornada válida.',400);
   const row=await database().prepare('SELECT payload FROM days WHERE id=?').bind(id).first<{payload:string}>();

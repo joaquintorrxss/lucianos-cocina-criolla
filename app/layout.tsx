@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./identity.css";
 import "./report-delivery.css";
+import "./auth.css";
 
 export const metadata: Metadata = {
   title: "Lucianos · Pedidos y caja",

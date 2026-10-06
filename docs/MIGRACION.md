@@ -1,4 +1,4 @@
-# Migración de Lucianos a infraestructura propia
+# Lucianos en infraestructura propia: inicio desde cero
 
 ## Punto de partida
 
@@ -12,9 +12,9 @@
 - D1 nueva: `lucianos-produccion`, ID `e539eb6d-8280-41b7-b8a3-f5ce0f447938`, esquema aplicado y cero jornadas.
 - Respaldo privado: `../respaldos/2026-10-02-inicio/`. No subir a GitHub las exportaciones de ventas.
 
-La primera etapa conserva los archivos de la aplicación. La copia aún contiene configuración y autenticación de Sites y NO está lista para publicar directamente en una cuenta propia. El historial de Git se conservó para comparar y revertir cambios.
+La aplicación conserva su diseño y reglas, y usa configuración propia del Worker (`wrangler.jsonc`) y acceso con contraseña (`docs/ACCESO.md`). Está publicada en https://lucianos-cocina-criolla.joaquintorress1205.workers.dev. El 6 de octubre de 2026 el usuario pidió iniciar desde cero: NO se trasladarán registros del sistema anterior. La D1 propia empieza sin jornadas, pedidos ni caja abierta. El historial de Git se conserva para comparar y revertir cambios.
 
-Estado del respaldo inicial: código ZIP e historial Git completos. La inspección de producción encontró dos jornadas, 2026-09-27 y 2026-09-30, con revisiones 14 y 5. El lector de tablas disponible recorta los valores JSON largos y la API del historial exige identidad de usuario autenticado (HTTP 401 incluso con el token de acceso técnico de la plataforma). Por ello NO se guardaron fragmentos como si fueran una exportación completa. Hay que obtener un mecanismo de exportación autenticada antes de importar o trasladar datos reales; no desactivar la autenticación del sistema vigente para hacerlo.
+Estado del respaldo de código: ZIP e historial Git completos. No se obtuvo una exportación completa de ventas del sistema anterior; los resultados recortados no se guardaron como respaldo. Tras la decisión de iniciar desde cero, esa exportación NO es requisito ni trabajo pendiente. El sistema anterior y sus registros se conservan sin modificaciones.
 
 ## Qué hace cada servicio
 
@@ -25,7 +25,7 @@ Estado del respaldo inicial: código ZIP e historial Git completos. La inspecci�
 | Git y GitHub privado | Historial y respaldo del código en tu cuenta |
 | Cloudflare Workers | Ejecuta la web y el backend |
 | Cloudflare D1 | Guarda jornadas, pedidos, pagos y movimientos |
-| Cloudflare Access | Restringe el acceso a personas autorizadas |
+| Acceso propio de Lucianos | Usuario y contraseña; validación de sesión en el backend |
 
 Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegador no recibe claves de administración de la base. Guardar un pago implica que el backend valida el importe, la jornada y la revisión del registro, y luego escribe en D1.
 
@@ -40,18 +40,15 @@ Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegad
    Repositorio privado creado y `origin` vinculado a la cuenta del usuario. Los respaldos, bases locales y credenciales están excluidos de Git. Verificar las referencias remotas después de cada push.
 4. Sustituir la configuración de Sites por configuración explícita del Worker propio y una base D1 nueva. No reutilizar IDs de recursos del sistema vigente.
 
-   La D1 nueva ya está creada y tiene el esquema aplicado. `wrangler.d1.json` permite administrarla; todavía no sustituye la configuración de la aplicación ni del Worker. Ver `docs/BASE_DE_DATOS.md`.
-5. Sustituir el inicio de sesión de Sites. La propuesta es Cloudflare Access con correos autorizados, validación del token en backend y acceso cerrado cuando falte configuración. Confirmar los correos con el usuario.
-
-   El usuario quiere su correo `joaquintorress1205@gmail.com` y otros que proporcionará. La lista adicional está pendiente; el acceso privado todavía no está configurado.
-
-   Después consultó si podía usar credenciales ficticias únicas, como `lucianos@sistema.com`. Se explicó la alternativa de acceso propio con usuario y contraseña, que admite identificadores internos sin buzón real. El PIN por correo de Cloudflare Access requiere recibir el código en un correo real. Falta elegir el método antes de implementar la autenticación; no pedir otros correos si finalmente elige usuarios internos.
-6. Importar una copia completa de los registros reales a la nueva D1 y cotejar IDs, revisiones, pedidos, importes históricos y arqueos. No importar datos de prueba locales.
-7. Probar la instancia nueva: registro, detalle por plato, entregas, cobros, vuelto, caja, historial, filtros y PDF. Los ensayos de ventas deben realizarse en una base de prueba.
-8. Entre jornadas, actualizar el respaldo de producción, importar los últimos cambios, comprobar totales y cambiar la dirección que usa el restaurante. Mantener una única instancia activa para ventas.
-9. Tras validar la migración, agregar un panel administrativo para editar carta, nombres, precios y apariencia sin tocar código.
-
-Un respaldo inicial no cubre las ventas que se registren después de la exportación. Antes del cambio definitivo hay que volver a exportar y comprobar.
+   La D1 nueva tiene el esquema de jornadas y autenticación. La aplicación usa
+   exclusivamente los recursos propios en `wrangler.jsonc`; se retiró de esta
+   copia el identificador antiguo de Sites. Ver `docs/BASE_DE_DATOS.md`.
+5. Acceso propio preparado: solo `lucianos@sistema.com` con contraseña.
+   El usuario decidió reservar `joaquintorress1205@gmail.com` para administración
+   posterior; no se creó esa cuenta ni un rol admin. Ver `docs/ACCESO.md`.
+6. Inicio limpio confirmado por el usuario: NO importar datos históricos. La nueva D1 tiene una cuenta general y cero jornadas.
+7. Registrar las nuevas jornadas únicamente en esta instancia, eligiendo carta del día, fondo inicial de caja y cantidades disponibles desde la pantalla de apertura.
+8. El administrador y el panel para editar carta, nombres y precios se harán después; todavía no están creados.
 
 ## Estructura y preservación de datos
 
@@ -59,14 +56,16 @@ Actualmente D1 tiene una tabla `days`. Cada fila guarda la jornada completa en J
 
 Cada pedido guarda sus líneas con nombre, categoría, cantidad, precio unitario y unidades servidas, junto con sus pagos. Cambiar los precios de la carta no debe reemplazar esos valores históricos. Los importes son céntimos enteros; `1800` representa S/ 18.00.
 
-El archivo `datos-produccion.json`, cuando la exportación esté verificada, contiene las filas completas. `datos-produccion.sql` incluye el esquema y los INSERT para una base vacía. `manifest-datos.json` registra fecha, huellas SHA-256 y totales para cotejar la restauración. La ausencia de cualquiera de ellos significa que todavía no debe darse por terminado el respaldo de datos.
+No hay archivos de importación de ventas. La nueva base comienza desde cero por decisión del usuario; no crear ni importar esos archivos sin una nueva solicitud expresa.
 
 ## Límites actuales
 
-Comprobaciones de la preparación local: extensión oficial `openai.chatgpt` instalada (versión 26.930.21537), dependencias instaladas con `npm ci`, 27 pruebas aprobadas, TypeScript sin errores y build completo. Se creó únicamente el esquema en D1 local. Las API de estado e historial respondieron HTTP 200 con sesión local; sin sesión, estado respondió HTTP 401. No se modificaron componentes, CSS ni reglas de negocio. El checkout original mantuvo el mismo commit y estado Git limpio.
+Comprobaciones del 6 de octubre: 31 pruebas aprobadas, TypeScript sin errores, build completo y ensayo de publicación correcto. Las pruebas HTTP locales en desarrollo y servidor compilado cubrieron identidad falsa, contraseñas erróneas, ausencia de admin, limitación de intentos, origen, sesión caducada, cuenta desactivada y cierre de sesión. Las credenciales y SQL de aprovisionamiento están excluidos de Git. En Cloudflare se verificaron pantalla, inicio de sesión, D1 vacía, interfaz general y revocación por HTTPS. La copia original conserva el commit inicial y su estado limpio.
+
+La publicación propia está en https://lucianos-cocina-criolla.joaquintorress1205.workers.dev/login. No se contrató un plan de pago. La nueva base empieza desde cero por decisión expresa del usuario.
 
 - Instalar la extensión no publica el sitio ni migra la base.
-- GitHub propia y Cloudflare están vinculadas. La D1 propia está creada con esquema e índices verificados y cero jornadas. Todavía no se ha publicado el Worker ni configurado el acceso privado del usuario.
-- El acceso simulado de desarrollo solo sirve para pruebas en localhost y no sustituye autenticación de producción.
+- GitHub propia y Cloudflare están vinculadas. La D1 propia está creada con esquema e índices verificados y cero jornadas. El acceso propio está publicado y verificado por HTTPS en Workers Free. Solo la cuenta general está activa.
+- El ingreso local ahora exige la cuenta real; se eliminó el acceso simulado de Sites.
 - Los reportes WhatsApp siguen usando los números personales confirmados y requieren compartir el PDF; no hay API Business para enviar adjuntos automáticamente.
-- Antes de desplegar, retirar el identificador del proyecto de Sites de esta copia y documentar los recursos nuevos. No modificar ese identificador en el checkout original.
+- El identificador de Sites ya fue retirado de esta copia. No modificar el checkout original. El ingreso y las consultas iniciales funcionaron en Workers Free; el coste de PDF con muchas órdenes y la carga sostenida aún no se verificaron en el plan gratuito.
