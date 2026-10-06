@@ -1,5 +1,6 @@
 import {safeAuthOrigin} from '@/lib/auth-http';
 import {database} from '@/db/raw';
+import {readCatalog} from '@/db/catalog';
 import {applyAction,openDay} from '@/lib/model';
 import {getCurrentUser} from '@/app/auth';
 import {isDayConflict,isStorageFailure} from '@/lib/storage-errors';
@@ -9,8 +10,7 @@ async function state(id:string|null){
  const db=database();
  const list=await db.prepare('SELECT id,date,active FROM days ORDER BY date DESC').all();
  const row:any=id?await db.prepare('SELECT * FROM days WHERE id=?').bind(id).first():await db.prepare('SELECT * FROM days WHERE active=1 LIMIT 1').first();
- const latest:any=row??await db.prepare('SELECT payload FROM days ORDER BY date DESC LIMIT 1').first();
- return {days:list.results,day:row?JSON.parse(row.payload):null,revision:row?.revision??0,lastPrices:latest?JSON.parse(latest.payload).prices:undefined};
+ return {days:list.results,day:row?JSON.parse(row.payload):null,revision:row?.revision??0,...await readCatalog()};
 }
 export async function GET(req:Request){
  try {
@@ -25,8 +25,10 @@ export async function POST(req:Request){
   if(Number(req.headers.get('content-length')??0)>100000)return json({error:'El pedido es demasiado grande.'},413);
   const a:any=await req.json();const db=database();
   if(a.type==='open'){
-   const d=openDay(a);
-   try {await db.prepare('INSERT INTO days (id,date,active,revision,payload) VALUES (?,?,1,1,?)').bind(d.id,d.date,JSON.stringify(d)).run();}
+   const current=await readCatalog();
+   if(a.catalogVersion!==current.catalogVersion)return json({error:'La carta cambió. Actualiza la pantalla y vuelve a abrir la jornada.',...await state(null)},409);
+   const d=openDay({...a,prices:undefined},current.catalog);
+   try {const saved=await db.prepare('INSERT INTO days (id,date,active,revision,payload) SELECT ?,?,1,1,? WHERE EXISTS (SELECT 1 FROM catalog_meta WHERE id=1 AND revision=?)').bind(d.id,d.date,JSON.stringify(d),current.catalogVersion).run();if(saved.meta.changes!==1)return json({error:'La carta cambió. Actualiza la pantalla y vuelve a abrir la jornada.',...await state(null)},409);}
    catch(e){
     if(!isDayConflict(e))throw e;
     const existing=await state(null);

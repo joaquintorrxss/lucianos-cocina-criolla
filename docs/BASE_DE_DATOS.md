@@ -109,3 +109,7 @@ SELECT COUNT(*) AS jornadas FROM days;
 Referencias oficiales:
 - https://developers.cloudflare.com/d1/get-started/
 - https://developers.cloudflare.com/d1/reference/migrations/
+
+## Catálogo administrable
+
+La migración `0002_simple_cloak.sql` está aplicada en local y en la D1 propia. Añade `products`, `catalog_meta` y `auth_users.role`; inicializa los 25 productos de la carta original, sin ventas ni jornadas antiguas. Los triggers de productos incrementan la revisión global. El CRUD se hace desde la web, validado por el backend. Ver `docs/ADMINISTRAR_CARTA.md`.

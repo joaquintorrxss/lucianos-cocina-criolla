@@ -1,7 +1,7 @@
 'use client';
 import {useState,useRef,useEffect,type ReactNode} from 'react';
 import {Check,CheckCheck,ChefHat,Plus,Minus,X,Search,Wallet,Receipt,UtensilsCrossed} from 'lucide-react';
-import {catalog,money,total,paid,served,balance,type Day,type Order,type Line} from '@/lib/model';
+import {dayCatalog,money,total,paid,served,balance,type Day,type Order,type Line} from '@/lib/model';
 import {dayAccounting,stages,orderStage,stageLabel,stageColor,type Stage} from '@/lib/accounting';
 
 const clock=(s:string)=>new Date(s).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',timeZone:'America/Lima'});
@@ -63,9 +63,9 @@ export function OrderForm({day,order,initialTable,busy,onSave}:{day:Day;order?:O
  const [selected,setSelected]=useState<string|null>(null),[quantity,setQuantity]=useState('1'),[detail,setDetail]=useState('');
  const configRef=useRef<HTMLElement>(null);
  useEffect(()=>{if(selected){configRef.current?.scrollIntoView({block:'nearest'});configRef.current?.querySelector<HTMLInputElement>('input')?.focus({preventScroll:true});}},[selected]);
- const products=catalog.filter(p=>p.days.includes(day.menu)&&normalize(p.name).includes(normalize(q))&&(cat==='Todos'||p.category===cat));
+ const products=dayCatalog(day).filter(p=>p.days.includes(day.menu)&&normalize(p.name).includes(normalize(q))&&(cat==='Todos'||p.category===cat));
  const available=(id:string)=>day.stock[id]===null?null:day.stock[id]+(order?.lines.filter(l=>l.productId===id).reduce((n,l)=>n+l.qty,0)??0)-lines.filter(l=>l.productId===id).reduce((n,l)=>n+l.qty,0);
- const product=catalog.find(p=>p.id===selected),qty=Number(quantity),remaining=product?available(product.id):null;
+ const product=dayCatalog(day).find(p=>p.id===selected),qty=Number(quantity),remaining=product?available(product.id):null;
  const invalidQty=!Number.isInteger(qty)||qty<1||qty>1000||remaining!==null&&qty>remaining;
  function choose(id:string){setSelected(id);setQuantity('1');setDetail('');}
  function add(){if(!product||invalidQty)return;const note=detail.trim();const price=day.prices[product.id];const same=lines.find(l=>l.productId===product.id&&l.price===price&&(l.notes??'')===note&&l.qty+qty<=1000);setLines(same?lines.map(l=>l.id===same.id?{...l,qty:l.qty+qty}:l):[...lines,{id:crypto.randomUUID(),productId:product.id,name:product.name,category:product.category,qty,price,served:0,notes:note}]);setSelected(null);setQuantity('1');setDetail('');}

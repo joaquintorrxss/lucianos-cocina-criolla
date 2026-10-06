@@ -48,11 +48,11 @@ Flujo futuro: navegador → acceso privado → Worker/backend → D1. El navegad
    posterior; no se creó esa cuenta ni un rol admin. Ver `docs/ACCESO.md`.
 6. Inicio limpio confirmado por el usuario: NO importar datos históricos. La nueva D1 tiene una cuenta general y cero jornadas.
 7. Registrar las nuevas jornadas únicamente en esta instancia, eligiendo carta del día, fondo inicial de caja y cantidades disponibles desde la pantalla de apertura.
-8. El administrador y el panel para editar carta, nombres y precios se harán después; todavía no están creados.
+8. Administración de carta publicada: crear, editar, retirar y restaurar productos desde el navegador. Ver `docs/ADMINISTRAR_CARTA.md`.
 
 ## Estructura y preservación de datos
 
-Actualmente D1 tiene una tabla `days`. Cada fila guarda la jornada completa en JSON, junto con fecha, estado activo y revisión. No hay todavía una tabla separada de productos administrables. Conservar esta estructura durante la primera migración reduce cambios de comportamiento.
+D1 conserva `days`, con cada jornada en JSON y su revisión, y añade `products` para el catálogo administrable, `catalog_meta` para su versión y las tablas de autenticación. Las nuevas jornadas incluyen su propia copia de carta.
 
 Cada pedido guarda sus líneas con nombre, categoría, cantidad, precio unitario y unidades servidas, junto con sus pagos. Cambiar los precios de la carta no debe reemplazar esos valores históricos. Los importes son céntimos enteros; `1800` representa S/ 18.00.
 
@@ -65,7 +65,11 @@ Comprobaciones del 6 de octubre: 31 pruebas aprobadas, TypeScript sin errores, b
 La publicación propia está en https://lucianos-cocina-criolla.joaquintorress1205.workers.dev/login. No se contrató un plan de pago. La nueva base empieza desde cero por decisión expresa del usuario.
 
 - Instalar la extensión no publica el sitio ni migra la base.
-- GitHub propia y Cloudflare están vinculadas. La D1 propia está creada con esquema e índices verificados y cero jornadas. El acceso propio está publicado y verificado por HTTPS en Workers Free. Solo la cuenta general está activa.
+- GitHub propia y Cloudflare están vinculadas. La D1 propia está creada con esquema e índices verificados y cero jornadas. El acceso propio está publicado y verificado por HTTPS en Workers Free. Las cuentas general y administradora están activas.
 - El ingreso local ahora exige la cuenta real; se eliminó el acceso simulado de Sites.
 - Los reportes WhatsApp siguen usando los números personales confirmados y requieren compartir el PDF; no hay API Business para enviar adjuntos automáticamente.
 - El identificador de Sites ya fue retirado de esta copia. No modificar el checkout original. El ingreso y las consultas iniciales funcionaron en Workers Free; el coste de PDF con muchas órdenes y la carga sostenida aún no se verificaron en el plan gratuito.
+
+## Administración de carta autorizada el 6 de octubre
+
+La etapa posterior de administrador ya está autorizada: se crea `joaquintorress1205@gmail.com` con rol admin, manteniendo la cuenta general como operator. D1 incorpora `products` y `catalog_meta`, con los 25 productos originales como carta inicial, sin importar ventas. `Administrar carta` permite crear, editar, retirar y restaurar. Cada jornada conserva su propio catálogo. Ver `docs/ADMINISTRAR_CARTA.md`. Esta actualización reemplaza las notas anteriores que reservaban el administrador para después.

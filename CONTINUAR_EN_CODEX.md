@@ -30,7 +30,7 @@ Estos archivos transmiten el contexto necesario; esta conversación no se copia 
 
 El proyecto está hecho con React y TypeScript: los componentes `.tsx` producen el HTML. No es una única página `index.html`. El CSS y la lógica están separados en los archivos indicados.
 
-Cambiar la carta en código todavía requiere revisar las reglas y publicar. Tener VS Code no crea automáticamente un panel para editar productos; ese panel se hará después de validar la migración.
+La carta se gestiona desde Administrar carta con el administrador. Ver `docs/ADMINISTRAR_CARTA.md`. El catálogo inicial en `lib/model.ts` solo sirve como referencia inicial y compatibilidad; editarlo no cambia el catálogo D1 vigente.
 
 ## Desarrollo local
 
