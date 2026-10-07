@@ -47,7 +47,7 @@ try{
  const oversized=await post('/api/auth/login',{username:'lucianos@sistema.com',password:'x'.repeat(5000)});
  assert.equal(oversized.status,413,await oversized.text());
  const wrong=await login('lucianos@sistema.com','wrong-password'),missing=await login('missing@sistema.com','wrong-password');
- console.log('Prueba local: credenciales incorrectas y cuenta admin inexistente.');
+ console.log('Prueba local: credenciales incorrectas y contraseña incorrecta del admin.');
  assert.equal(wrong.status,401);assert.equal(missing.status,401);assert.deepEqual(await wrong.json(),await missing.json());
  assert.equal((await login('joaquintorress1205@gmail.com',password)).status,401);
  let response=await login(' LUCIANOS@SISTEMA.COM ',password);assert.equal(response.status,200);
@@ -74,7 +74,7 @@ try{
  console.log('Prueba local: límite de intentos.');
  for(let n=0;n<8;n++)assert.equal((await login(absent,'wrong-password')).status,401);
  response=await login(absent,'wrong-password');assert.equal(response.status,429);assert.equal(response.headers.get('retry-after'),'900');
- console.log('Autenticación local verificada: ingreso, errores genéricos, admin inexistente, bloqueo de cabeceras falsas, CSRF, expiración, cuenta desactivada, revocación y límite de intentos. Sin crear ventas.');
+ console.log('Autenticación local verificada: ingreso, errores genéricos, contraseña del admin rechazada, bloqueo de cabeceras falsas, CSRF, expiración, cuenta desactivada, revocación y límite de intentos. Sin crear ventas.');
 }finally{
  localSQL("UPDATE auth_users SET active=1 WHERE username='lucianos@sistema.com'; DELETE FROM auth_attempts; DELETE FROM auth_sessions;");
  localDb.close();

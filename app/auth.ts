@@ -9,6 +9,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   return database().prepare(`SELECT u.id, u.username, u.role FROM auth_sessions s
     JOIN auth_users u ON u.id=s.user_id
-    WHERE s.token_hash=? AND s.expires_at>? AND u.active=1`)
+    WHERE s.token_hash=? AND s.expires_at>? AND u.active=1 AND s.auth_version=u.auth_version`)
     .bind(tokenHash(token), Date.now()).first<CurrentUser>();
 }

@@ -50,16 +50,16 @@ export async function POST(req: Request) {
       return Response.json({error: 'Demasiados intentos. Espera 15 minutos antes de volver a ingresar.'},
         {status: 429, headers: {'Cache-Control': 'no-store', 'Retry-After': '900'}});
     }
-    const user = await db.prepare('SELECT id, password_hash, active FROM auth_users WHERE username=?')
-      .bind(username).first<{id: string; password_hash: string; active: number}>();
+    const user = await db.prepare('SELECT id, password_hash, active, auth_version FROM auth_users WHERE username=?')
+      .bind(username).first<{id: string; password_hash: string; active: number; auth_version:number}>();
     stage='verify-password';
     const valid = await verifyPassword(body.password, user?.password_hash ?? null);
     if (!valid || !user || user.active !== 1) return json('Usuario o contraseña incorrectos.', 401);
     const token = createSessionToken();
     stage='create-session';
     await db.prepare('DELETE FROM auth_sessions WHERE expires_at<=?').bind(now).run();
-    await db.prepare('INSERT INTO auth_sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)')
-      .bind(tokenHash(token), user.id, now+SESSION_SECONDS*1000).run();
+    await db.prepare('INSERT INTO auth_sessions (token_hash, user_id, expires_at,auth_version) VALUES (?, ?, ?,?)')
+      .bind(tokenHash(token), user.id, now+SESSION_SECONDS*1000,user.auth_version).run();
     return Response.json({ok: true}, {headers: {'Cache-Control': 'no-store', 'Set-Cookie': sessionCookie(token, req.url)}});
   } catch (error) {
     // Diagnostics deliberately omit passwords, request bodies, hashes and tokens.

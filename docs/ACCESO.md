@@ -17,10 +17,12 @@ El administrador puede usar el sistema habitual y Administrar carta. La cuenta g
 
 Contraseñas con scrypt, salt aleatorio y comparación segura; sesión aleatoria de 256 bits. D1 guarda únicamente hashes de contraseñas y de tokens. Cookie HttpOnly, Secure en HTTPS, SameSite Strict y duración de 12 horas. El backend valida sesión, usuario activo y rol en cada solicitud. Los encabezados de identidad y cookies simuladas del sitio anterior no dan acceso.
 
-El inicio de sesión limita intentos por IP y usuario y no registra contraseñas. Las escrituras verifican el origen. No existe un rol editable desde el navegador ni recuperación de contraseña por correo; el propietario gestiona accesos mediante aprovisionamiento.
+El inicio de sesión limita intentos por IP y usuario y no registra contraseñas. Las escrituras verifican el origen. Mi cuenta permite cambiar contraseña y correo. Usuarios, exclusivo de admin, permite crear, editar roles/accesos, activar/desactivar y restablecer contraseñas con reautenticación. La recuperación y verificación por correo están implementadas, con envío pendiente de proveedor. Ver docs/USUARIOS_Y_CORREO.md.
 
 ## Aprovisionamiento
 
 Aplicar primero las migraciones D1. Ejecutar scripts/create-general-user.mjs y scripts/create-admin-user.mjs para local; usar --remote solo para la D1 propia autorizada. Los scripts verifican cuenta e ID y no reemplazan contraseñas existentes. Crean una contraseña aleatoria solo si el archivo local aún no existe.
+
+Las contraseñas de entrega se actualizan solo cuando el propietario solicita la rotación. Después de cambiarlas desde la web, los archivos de entrega pueden quedar desactualizados; no son la fuente de autenticación.
 
 Las pruebas con jornadas y productos se ejecutan exclusivamente en local. La instancia nueva comienza sin ventas del sistema anterior.

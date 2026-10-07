@@ -11,7 +11,7 @@ function derive(password: string, salt: Buffer): Promise<Buffer> {
   });
 }
 export async function hashPassword(password: string): Promise<string> {
-  if (password.length < 16 || password.length > 256) throw new Error('Contraseña fuera del tamaño permitido.');
+  if (password.length < 8 || password.length > 256) throw new Error('La contraseña debe tener entre 8 y 256 caracteres.');
   const salt = randomBytes(16);
   return `${prefix}$${salt.toString('hex')}$${(await derive(password, salt)).toString('hex')}`;
 }

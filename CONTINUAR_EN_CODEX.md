@@ -68,3 +68,7 @@ Comprobada el 6 de octubre de 2026: https://lucianos-cocina-criolla.joaquintorre
 Solo cuenta general `lucianos@sistema.com`; contraseña en `outputs/acceso-general.txt`, fuera de Git.
 El correo del administrador sigue reservado. Leer `docs/ACCESO.md` para el estado
 y `docs/MIGRACION.md` para la decisión de inicio limpio, sin trasladar historial.
+
+## Cuentas y correo
+
+Mi cuenta permite cambiar contraseña y asociar correo real. Usuarios es exclusivo de admin y permite gestionar cuentas. El propietario autorizó la rotación de las dos contraseñas iniciales y publicación en Cloudflare. Ver docs/USUARIOS_Y_CORREO.md para el envío pendiente de proveedor: no tiene servicio ni dominio. Las sesiones usan auth_version para invalidarse con cada cambio de acceso. Los enlaces públicos se gestionan en /acceso.

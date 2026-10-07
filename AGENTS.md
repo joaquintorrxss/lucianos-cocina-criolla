@@ -18,3 +18,5 @@ Lee primero `CONTINUAR_EN_CODEX.md` y `docs/MIGRACION.md`.
 - No hay WhatsApp Business configurado. Conservar descarga de PDF, compartir archivo compatible y enlaces a números personales; no afirmar que hay envío automático de adjuntos.
 
 Explica los pasos en español, para una persona que está aprendiendo desarrollo y backend.
+
+- El 6 de octubre el propietario autorizó actualizar las contraseñas de las dos cuentas iniciales y añadir Mi cuenta, Usuarios y verificación/recuperación de correo. No escribir las contraseñas solicitadas en el código o las migraciones. Ver docs/USUARIOS_Y_CORREO.md. No tiene proveedor de correo ni dominio: el envío está desactivado hasta configurar Resend; no afirmar que se envían mensajes ni marcar correos como verificados manualmente. El usuario pidió publicar en Cloudflare y usar la versión web sin npm.
