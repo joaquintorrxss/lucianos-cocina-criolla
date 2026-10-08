@@ -4,7 +4,7 @@ import {KeyRound,Mail,ShieldCheck,Plus,Search,X,UserRound,Settings,LockKeyhole} 
 type Profile={id:string;username:string;role:string;email:string|null;emailVerifiedAt:number|null;revision:number};
 type User=Profile&{active:number;createdAt:number};
 async function request(path:string,body?:unknown){const r=await fetch(path,{cache:'no-store',...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});const data:any=await r.json();if(!r.ok)throw new Error(data.error??'No se pudo completar la operación.');return data;}
-function Toast({message,onClose}:{message:string;onClose:()=>void}){return message?<div className="admin-notice" role="status"><span>{message}</span><button className="icon-button" aria-label="Cerrar notificación" onClick={onClose}><X size={17}/></button></div>:null;}
+function Toast({message,onClose}:{message:string;onClose:()=>void}){useEffect(()=>{if(!message)return;const id=setTimeout(onClose,3000);return()=>clearTimeout(id);},[message]);return message?<div className="admin-notice" role="status"><span>{message}</span><button className="icon-button" aria-label="Cerrar notificación" onClick={onClose}><X size={17}/></button></div>:null;}
 export function AccountPanel(){
  const [data,setData]=useState<{user:Profile;emailEnabled:boolean}|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[email,setEmail]=useState(''),[current,setCurrent]=useState(''),[newPassword,setNew]=useState(''),[confirmation,setConfirmation]=useState(''),[emailPassword,setEmailPassword]=useState('');
  const lock=useRef(false);

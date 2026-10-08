@@ -17,6 +17,7 @@ export function ReportDialog({day,onClose,justClosed=false}:{day:Day;onClose:()=
 
 function ReportDelivery({day,justClosed}:{day:Day;justClosed:boolean}){
  const [file,setFile]=useState<File|null>(null),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(true),[attempt,setAttempt]=useState(0),[warnings,setWarnings]=useState<string[]>([]),[pages,setPages]=useState(0),[canShare,setCanShare]=useState(false),[sharing,setSharing]=useState(false),[notice,setNotice]=useState('');
+ useEffect(()=>{if(!notice)return;const id=setTimeout(()=>setNotice(''),3000);return()=>clearTimeout(id);},[notice]);
  const a=dayAccounting(day),difference=(day.counted??0)-a.expected;
  useEffect(()=>{
   const controller=new AbortController();let disposed=false;setBusy(true);setError('');setFile(null);
@@ -46,7 +47,7 @@ function ReportDelivery({day,justClosed}:{day:Day;justClosed:boolean}){
  }
  return <div className="dialog-body report-delivery">
   <div className="delivery-saved"><CheckCheck size={23}/><div><strong>{day.menu} · {new Date(day.date+'T12:00:00-05:00').toLocaleDateString('es-PE',{timeZone:'America/Lima'})}</strong><p>{justClosed?'El salón está listo para la siguiente jornada.':'Arqueo y pedidos guardados en Historial.'} Puedes recuperar este reporte cuando lo necesites.</p></div></div>
-  <div className="delivery-totals"><div><span>Efectivo de ventas</span><strong>{money(a.cashSales)}</strong></div><div><span>Yape recibido</span><strong>{money(a.yape)}</strong></div><div><span>Caja esperada</span><strong>{money(a.expected)}</strong></div><div><span>Caja contada</span><strong>{money(day.counted??0)}</strong></div></div>
+  <div className="delivery-totals"><div><span>Efectivo de ventas</span><strong>{money(a.cashSales)}</strong></div><div className="yape-surface"><span>Yape recibido</span><strong>{money(a.yape)}</strong></div><div><span>Caja esperada</span><strong>{money(a.expected)}</strong></div><div><span>Caja contada</span><strong>{money(day.counted??0)}</strong></div></div>
   <p className={'delivery-difference '+(difference!==0?'has-difference':'')}>{difference===0?'Caja cuadrada. Diferencia: ':difference>0?'Sobrante de caja: ':'Faltante de caja: '}<b>{money(Math.abs(difference))}</b><span>Incluye fondo inicial y movimientos. Yape se muestra aparte.</span></p>
   <section className="delivery-document"><div className="delivery-doc-heading"><FileText size={26}/><div><h3>Los pedidos del día, en PDF</h3><p>{busy?'Preparando desde los registros guardados…':file?`${pages} página${pages===1?'':'s'} · cantidades, precios, detalles y totales`:'El cierre está guardado. Puedes reintentar el PDF.'}</p></div></div>
    {error&&<div className="error-banner" role="alert">{error}<button onClick={()=>setAttempt(n=>n+1)}>Reintentar PDF</button></div>}

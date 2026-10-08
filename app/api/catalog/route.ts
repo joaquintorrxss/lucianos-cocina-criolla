@@ -21,14 +21,16 @@ export async function POST(req:Request){
   let a:any;try{a=JSON.parse(new TextDecoder().decode(buffer));}catch{return json({error:'Solicitud inválida.'},400);}
   if(!a||!['create','update','archive','restore'].includes(a.type))return json({error:'Operación inválida.'},400);
   const db=database();let result;
+  async function checkStock(p:ReturnType<typeof validateProduct>){const {catalog}=await readCatalog(true);if(p.stockSourceId){const source=catalog.find(x=>x.id===p.stockSourceId&&x.active);if(!source||source.id===a.id||source.stockSourceId||source.persistentStock||source.category!=='Platos'||p.days.some(d=>!source.days.includes(d)))throw new Error('Selecciona un plato base activo que comparta los días de atención.');}const linked=catalog.filter(x=>x.stockSourceId===a.id&&x.active);if(linked.length&&(p.stockSourceId||p.persistentStock||p.category!=='Platos'||linked.some(x=>x.days.some(d=>!p.days.includes(d)))))throw new Error('Selecciona un stock compatible con los platos que comparten estas presas.');}
+
   if(a.type==='create'){
    if(typeof a.id!=='string'||! /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(a.id))return json({error:'Producto inválido.'},400);
-   const p=validateProduct(a);result=await db.prepare('INSERT INTO products (id,name,category,price,days,active,revision,updated_at) VALUES (?,?,?,?,?,1,1,?) ON CONFLICT(id) DO NOTHING').bind(a.id,p.name,p.category,p.price,JSON.stringify(p.days),Date.now()).run();
+   const p=validateProduct(a);await checkStock(p);result=await db.prepare('INSERT INTO products (id,name,category,price,days,active,revision,updated_at,stock_source_id,persistent_stock) VALUES (?,?,?,?,?,1,1,?,?,?) ON CONFLICT(id) DO NOTHING').bind(a.id,p.name,p.category,p.price,JSON.stringify(p.days),Date.now(),p.stockSourceId??null,p.persistentStock?1:0).run();
   }else{
    if(typeof a.id!=='string'||a.id.length>100||!Number.isSafeInteger(a.revision)||a.revision<1)return json({error:'Producto inválido.'},400);
    if(a.type==='update'){
-    const p=validateProduct(a);result=await db.prepare('UPDATE products SET name=?,category=?,price=?,days=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? RETURNING id').bind(p.name,p.category,p.price,JSON.stringify(p.days),Date.now(),a.id,a.revision).first();
-   }else result=await db.prepare('UPDATE products SET active=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? RETURNING id').bind(a.type==='restore'?1:0,Date.now(),a.id,a.revision).first();
+    const p=validateProduct(a);await checkStock(p);result=await db.prepare('UPDATE products SET name=?,category=?,price=?,days=?,stock_source_id=?,persistent_stock=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? RETURNING id').bind(p.name,p.category,p.price,JSON.stringify(p.days),p.stockSourceId??null,p.persistentStock?1:0,Date.now(),a.id,a.revision).first();
+   }else {if(a.type==='archive'&&(await readCatalog(true)).catalog.some(p=>p.active&&p.stockSourceId===a.id))throw new Error('Selecciona primero los platos relacionados y retíralos o cambia su stock compartido.');result=await db.prepare('UPDATE products SET active=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? RETURNING id').bind(a.type==='restore'?1:0,Date.now(),a.id,a.revision).first();}
    if(!result)return json({error:'El producto cambió en otra sesión. Actualiza la lista y vuelve a editar.',...await readCatalog(true)},409);
   }
   return json(await readCatalog(true));

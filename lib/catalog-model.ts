@@ -9,5 +9,9 @@ export function validateProduct(input:unknown):Product {
  if(typeof a.category!=='string'||!categories.includes(a.category))throw new Error('Selecciona una categoría válida.');
  if(typeof a.price!=='number'||!Number.isSafeInteger(a.price)||a.price<0||a.price>10000000)throw new Error('Ingresa un precio válido, hasta S/ 100,000.');
  if(!Array.isArray(a.days)||!a.days.length||a.days.length>3||a.days.some(d=>typeof d!=='string'||!serviceDays.includes(d))||new Set(a.days).size!==a.days.length)throw new Error('Elige al menos un día de atención.');
- return {id:'',name:a.name.trim(),category:a.category as Product['category'],price:a.price,days:serviceDays.filter(d=>(a.days as string[]).includes(d))};
+ if(a.stockSourceId!==undefined&&a.stockSourceId!==null&&(typeof a.stockSourceId!=='string'||a.stockSourceId.length>100))throw new Error('Selecciona un stock compartido válido.');
+ if(a.persistentStock!==undefined&&typeof a.persistentStock!=='boolean')throw new Error('Selecciona un tipo de inventario válido.');
+ if(a.persistentStock&&a.category!=='Bebidas')throw new Error('Selecciona Bebidas para el inventario entre jornadas.');
+ if(a.stockSourceId&&(a.persistentStock||a.category!=='Platos'))throw new Error('Selecciona Platos para compartir presas.');
+ return {id:'',name:a.name.trim(),category:a.category as Product['category'],price:a.price,days:serviceDays.filter(d=>(a.days as string[]).includes(d)),stockSourceId:(a.stockSourceId as string)||null,persistentStock:a.persistentStock===true};
 }

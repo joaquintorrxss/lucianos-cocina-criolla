@@ -1,7 +1,7 @@
 import {PDFDocument, rgb, type PDFFont, type PDFPage} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {type Day, type Order, total, paid} from './model.ts';
-import {dayAccounting, stageLabel} from './accounting.ts';
+import {stageLabel} from './accounting.ts';
 const soles=(value:number)=>`S/ ${(value/100).toFixed(2)}`;
 const date=(value:string)=>new Date(value+'T12:00:00-05:00').toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Lima'});
 const clock=(value:string)=>new Date(value).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',timeZone:'America/Lima'});
@@ -26,11 +26,11 @@ export async function createOrderReport(day:Day,fontBytes:Uint8Array,boldFontByt
   const rows=order.lines.map(l=>({name:wrap(l.name,width-260,10),note:l.notes?wrap('Detalle: '+l.notes,width-260,9):[],category:l.category,qty:l.qty,price:l.price}));
   const notes=order.notes?wrap('Observaciones: '+order.notes,width-80,9):[];
   const body=rows.reduce((n,r)=>n+Math.max(34,r.name.length*14+r.note.length*12+22),0);
-  const height=Math.max(841.89,body+notes.length*12+636);
+  const height=Math.max(841.89,body+notes.length*12+440);
   return {rows,notes,width,height,tall:height>842||width>596};
  }
  const orders=[...day.orders].sort((a,b)=>a.number-b.number);
- const a=dayAccounting(day);const layouts=orders.map(order=>{
+ const layouts=orders.map(order=>{
   let result=layout(order,595.28);
   while(result.height>14000&&result.width<14000)result=layout(order,result.width*1.5);
   if(result.height>14400)throw new Error(`El pedido #${order.number} excede el tamaño admitido para una sola página.`);
@@ -40,7 +40,7 @@ export async function createOrderReport(day:Day,fontBytes:Uint8Array,boldFontByt
  if(layouts.some(l=>l.tall))warnings.push('Los pedidos extensos usan una página más larga que A4 para conservar todos sus detalles.');
  if(unicodeCodes)warnings.push('Los símbolos que no admite la fuente se muestran mediante su código Unicode, por ejemplo [U+1F600].');
  const created=new Date(day.closed);doc.setCreationDate(created);doc.setModificationDate(created);
- doc.setTitle(`Lucianos - pedidos ${day.date}`);doc.setAuthor('Lucianos Cocina Criolla');doc.setSubject('Pedidos y arqueo de jornada cerrada');
+ doc.setTitle(`Lucianos - pedidos ${day.date}`);doc.setAuthor('Lucianos Cocina Criolla');doc.setSubject('Pedidos de jornada cerrada');
  const face=(size:number,color:typeof ink)=>size>=11||color===wine?boldFont:font;
  const text=(page:PDFPage,s:string,x:number,y:number,size=10,color=ink)=>page.drawText(clean(s),{x,y,size,font:face(size,color),color});
  const right=(page:PDFPage,s:string,x:number,y:number,size=10,color=ink)=>text(page,s,x-face(size,color).widthOfTextAtSize(clean(s),size),y,size,color);
@@ -54,22 +54,15 @@ export async function createOrderReport(day:Day,fontBytes:Uint8Array,boldFontByt
   text(page,`Cierre ${clock(day.closed!)} - ${day.id.slice(0,8)}`,34,25,8,muted);
   right(page,`Pagina ${index+1} de ${Math.max(orders.length,1)}`,width-34,25,8,muted);
  }
- function closure(page:PDFPage,width:number,y:number){
-  page.drawRectangle({x:34,y:y-108,width:width-68,height:108,color:paper});
-  text(page,'ARQUEO DEL DIA - EFECTIVO Y YAPE SEPARADOS',46,y-18,9,wine);
-  const values=[['Inicial',day.opening],['Efectivo de ventas',a.cashSales],['Yape',a.yape],['Caja esperada',a.expected],['Caja contada',day.counted!],['Diferencia',day.counted!-a.expected]] as const;
-  values.forEach(([label,value],i)=>{const x=46+(i%3)*(width-92)/3,base=y-40-Math.floor(i/3)*34;text(page,label,x,base,8,muted);text(page,soles(value),x,base-14,11,i===5&&value!==0?wine:ink);});
-  text(page,`Otros ingresos: ${soles(a.movementsIn)} / Salidas: ${soles(a.movementsOut)} / Ventas del dia: ${soles(a.sales)}`,34,y-126,8,muted);
- }
  if(!orders.length){
   const page=doc.addPage([595.28,841.89]);heading(page,595.28,841.89,0);
-  text(page,'Jornada sin pedidos',34,680,22,wine);text(page,'No se registraron pedidos en esta jornada.',34,650,11,muted);closure(page,595.28,590);
+  text(page,'Jornada sin pedidos',34,680,22,wine);text(page,'No se registraron pedidos en esta jornada.',34,650,11,muted);
  }
  orders.forEach((order,index)=>{
   const l=layouts[index];const page=doc.addPage([l.width,l.height]);heading(page,l.width,l.height,index);
   let y=l.height-149;
   text(page,`PEDIDO #${String(order.number).padStart(3,'0')}`,34,y,23,wine);right(page,`MESA ${order.table}`,l.width-34,y,17,wine);
-  y-=25;text(page,`${clock(order.at)} - ${order.cancelled?'ANULADO / EXCLUIDO DE LAS VENTAS':stageLabel(order)}`,34,y,10,order.cancelled?wine:muted);
+  y-=25;text(page,`${clock(order.at)}${order.takeaway?' - PARA LLEVAR':''} - ${order.cancelled?'ANULADO / EXCLUIDO DE LAS VENTAS':stageLabel(order)}`,34,y,10,order.cancelled?wine:muted);
   y-=34;page.drawRectangle({x:34,y:y-10,width:l.width-68,height:28,color:wine});
   text(page,'PRODUCTO / DETALLE',44,y,9,rgb(1,1,1));right(page,'CANT.',l.width-203,y,9,rgb(1,1,1));right(page,'PRECIO',l.width-119,y,9,rgb(1,1,1));right(page,'SUBTOTAL',l.width-44,y,9,rgb(1,1,1));y-=29;
   l.rows.forEach((row,i)=>{
@@ -86,8 +79,8 @@ export async function createOrderReport(day:Day,fontBytes:Uint8Array,boldFontByt
   right(page,order.cancelled?'IMPORTE ANULADO':'TOTAL DEL PEDIDO',l.width-34,y+20,9,wine);right(page,soles(total(order)),l.width-34,y-3,22,wine);
   y-=36;const cash=order.payments.reduce((n,p)=>n+p.cash,0),yape=order.payments.reduce((n,p)=>n+p.yape,0),change=order.payments.reduce((n,p)=>n+p.change,0);
   text(page,`Efectivo: ${soles(cash)} / Yape: ${soles(yape)} / Vuelto: ${soles(change)}`,34,y,10);
-  y-=18;text(page,order.cancelled?'Este pedido no suma a las ventas ni al arqueo.':`Cobrado: ${soles(paid(order))} / Saldo pendiente: ${soles(total(order)-paid(order))}`,34,y,9,muted);
-  closure(page,l.width,y-24);
+  y-=18;text(page,order.cancelled?'Este pedido no suma a las ventas.':`Cobrado: ${soles(paid(order))} / Saldo pendiente: ${soles(total(order)-paid(order))}`,34,y,9,muted);
+
  });
  return {bytes:await doc.save(),pages:doc.getPageCount(),warnings};
 }

@@ -10,6 +10,7 @@ const directory=resolve('.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
 const candidates=readdirSync(directory).filter(n=>/^[a-f0-9]{64}\.sqlite$/.test(n)).filter(n=>{const d=new DatabaseSync(resolve(directory,n));try{return !!d.prepare("SELECT name FROM sqlite_master WHERE name='products'").get();}finally{d.close();}});
 assert.equal(candidates.length,1);const db=new DatabaseSync(resolve(directory,candidates[0]));
 assert.equal(db.prepare('SELECT COUNT(*) AS n FROM days').get().n,0,'Solo usar una base LOCAL sin jornadas.');
+const inventoryBefore=db.prepare('SELECT * FROM inventory WHERE id=1').get();
 const id=crypto.randomUUID(),item={id,name:'Prueba local · Seco',category:'Platos',price:2550,days:['Domingo']};
 const cookies=[];let dayId;
 const fetchJSON=async(path,cookie,body,extra={})=>{
@@ -35,7 +36,7 @@ try{
  const current=r.body;
  assert.equal((await fetchJSON('/api/catalog',admin,{type:'update',...p,revision:1})).status,409);
  console.log('Creación, reintento sin duplicados, edición y conflicto: correctos.');
- const opening={type:'open',menu:'Domingo',date:'2026-09-27',opening:6000,stock:Object.fromEntries(current.catalog.filter(p=>p.active&&p.days.includes('Domingo')).map(p=>[p.id,p.category==='Platos'?5:null]))};
+ const opening={opId:crypto.randomUUID(),type:'open',menu:'Domingo',date:'2026-09-27',opening:6000,stock:Object.fromEntries(current.catalog.filter(p=>p.active&&p.days.includes('Domingo')).map(p=>[p.id,p.category==='Platos'||p.persistentStock?5:null]))};
  assert.equal((await fetchJSON('/api/state',general,{...opening,catalogVersion:oldVersion})).status,409);
  r=await fetchJSON('/api/state',general,{...opening,catalogVersion:current.catalogVersion,prices:{[id]:1}});assert.equal(r.status,200);let day=r.body.day;dayId=day.id;assert.equal(day.prices[id],2750);
  r=await fetchJSON('/api/state',general,{type:'order',dayId,revision:r.body.revision,opId:crypto.randomUUID(),table:1,notes:'Prueba',lines:[{productId:id,qty:2,price:day.prices[id]}]});assert.equal(r.status,200);const order=r.body.day.orders[0];
@@ -45,7 +46,8 @@ try{
  r=await fetchJSON('/api/catalog',admin,{type:'restore',id,revision:p.revision});assert.equal(r.status,200);assert.equal(r.body.catalog.find(p=>p.id===id).active,true);
  console.log('Carta desde D1, retiro, recuperación, precio del backend y preservación de pedidos: correctos.');
 }finally{
- if(dayId)db.prepare('DELETE FROM days WHERE id=?').run(dayId);
+ if(dayId){db.prepare('DELETE FROM inventory_movements WHERE day_id=?').run(dayId);db.prepare('DELETE FROM days WHERE id=?').run(dayId);}
+ db.prepare('UPDATE inventory SET revision=?,quantities=?,last_op=? WHERE id=1').run(inventoryBefore.revision,inventoryBefore.quantities,inventoryBefore.last_op);
  db.prepare('DELETE FROM products WHERE id=?').run(id);
  for(const cookie of cookies)await fetchJSON('/api/auth/logout',cookie,{}).catch(()=>{});
  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM days').get().n,0);db.close();

@@ -29,6 +29,27 @@
       "when": 1791336280731,
       "tag": "0003_awesome_micromax",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791429561214,
+      "tag": "0004_legal_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791431182740,
+      "tag": "0005_glamorous_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791431658015,
+      "tag": "0006_preserve_existing_pepians",
+      "breakpoints": true
     }
   ]
 }

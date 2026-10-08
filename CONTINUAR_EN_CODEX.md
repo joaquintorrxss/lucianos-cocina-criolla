@@ -72,3 +72,7 @@ y `docs/MIGRACION.md` para la decisión de inicio limpio, sin trasladar historia
 ## Cuentas y correo
 
 Mi cuenta permite cambiar contraseña y asociar correo real. Usuarios es exclusivo de admin y permite gestionar cuentas. El propietario autorizó la rotación de las dos contraseñas iniciales y publicación en Cloudflare. Ver docs/USUARIOS_Y_CORREO.md para el envío pendiente de proveedor: no tiene servicio ni dominio. Las sesiones usan auth_version para invalidarse con cada cambio de acceso. Los enlaces públicos se gestionan en /acceso.
+
+## Inventario y servicio publicados el 7 de octubre
+
+Ver `docs/INVENTARIO_Y_SERVICIO.md`: inventario continuo de gaseosas y reposiciones, presas compartidas de Pato/Cabrito con sus pepianes, pedidos para llevar, detalles plegables, pendientes/servidos, cobro mixto y conteo manual de Yape. El PDF conserva una hoja por pedido y omite el arqueo general. La nueva D1 ya tiene 2 jornadas y 10 pedidos reales del usuario, preservados en esta actualización; no está vacía. Verificaciones: 44 pruebas, TypeScript, build, HTTP local con concurrencia, ambas cuentas por HTTPS y PDF publicado de 6 pedidos/6 hojas.
