@@ -34,6 +34,16 @@ El PDF final contiene exclusivamente los pedidos: una hoja por pedido, productos
 
 ## Backend y consistencia
 
+### Ajustes de interfaz del 9 de octubre
+
+El formulario comienza con **En mesa / Para llevar**. El resumen indica platos y táperes: cinco platos generan cinco táperes; bebidas no generan envases. **El cliente trae sus táperes** quita los envases del cobro y conserva el pedido para llevar. La cantidad de la línea Táper permite ajustar entregas parciales; el cálculo automático puede recuperarse. No se retiran envases ya servidos o líneas protegidas por un pago completo.
+
+**Agregar detalle de plato** abre un campo solo al pulsarlo. Los detalles generales se agregan al final del pedido. Al cerrar el editor, las notas conservan una vista previa de una línea para mantener visible la lista.
+
+Todos los campos monetarios (apertura, movimientos, precios, cobro, efectivo y Yape contados) usan el componente `MoneyInput`: entrada de texto con teclado decimal, validación de importes y límites, sin incremento nativo por rueda o touchpad. Las cantidades de productos conservan sus controles propios.
+
+La cabecera muestra **Cambiar cuenta** y **Cerrar sesión**. Ambos revocan la sesión en el servidor y eliminan la cookie. Cambiar cuenta lleva al formulario de acceso con el usuario vacío; no modifica contraseñas ni roles.
+
 D1 incorpora `inventory` (saldo y revisión) e `inventory_movements` (historial). `/api/inventory` exige sesión y valida origen, cantidades, motivo y revisión. `/api/state` guarda el pedido y el saldo con un batch atómico de D1, condicionado a las revisiones de jornada e inventario. Un marcador único vincula ambas escrituras; un conflicto no descuenta stock sin guardar el pedido. Los reintentos usan un identificador para evitar duplicados. Los saldos de jornadas cerradas no se sobreescriben con el inventario actual.
 
 La migración `0004_legal_silver_sable.sql` agrega el esquema, las relaciones de presas y los dos pepianes. La migración `0005_glamorous_morlun.sql` agrega índices para buscar movimientos y comprobar reintentos sin recorrer todo el historial. La migración `0006_preserve_existing_pepians.sql` vincula también los pepianes que el propietario ya había creado sin tilde, conserva sus identificadores y retira las entradas iniciales duplicadas. No modifica el JSON de jornadas existentes ni las tablas de acceso. Pruebas de negocio y HTTP se ejecutan exclusivamente con fixtures locales; no se crean ventas de prueba en Cloudflare.

@@ -2,8 +2,8 @@
 import {useState, type FormEvent} from 'react';
 import {ArrowRight, LockKeyhole} from 'lucide-react';
 import {Brand} from '@/app/brand';
-export default function LoginForm() {
-  const [username, setUsername] = useState('lucianos@sistema.com');
+export default function LoginForm({switchAccount=false}:{switchAccount?:boolean}) {
+  const [username, setUsername] = useState(switchAccount?'':'lucianos@sistema.com');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
