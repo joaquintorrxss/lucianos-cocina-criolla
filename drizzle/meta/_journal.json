@@ -50,6 +50,13 @@
       "when": 1791431658015,
       "tag": "0006_preserve_existing_pepians",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791661591895,
+      "tag": "0007_allow_new_jornada_after_close",
+      "breakpoints": true
     }
   ]
 }

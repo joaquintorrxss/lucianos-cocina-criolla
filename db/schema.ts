@@ -1,5 +1,5 @@
 import {sqliteTable,text,integer,uniqueIndex,index} from 'drizzle-orm/sqlite-core';
-export const days=sqliteTable('days',{id:text('id').primaryKey(),date:text('date').notNull().unique(),active:integer('active'),revision:integer('revision').notNull().default(1),payload:text('payload').notNull()},t=>[uniqueIndex('idx_days_active').on(t.active)]);
+export const days=sqliteTable('days',{id:text('id').primaryKey(),date:text('date').notNull(),active:integer('active'),revision:integer('revision').notNull().default(1),payload:text('payload').notNull(),openingOpId:text('opening_op_id')},t=>[uniqueIndex('idx_days_active').on(t.active),index('idx_days_date').on(t.date),uniqueIndex('idx_days_opening_op').on(t.openingOpId)]);
 export const authUsers=sqliteTable('auth_users',{
  id:text('id').primaryKey(),username:text('username').notNull().unique(),
  passwordHash:text('password_hash').notNull(),active:integer('active').notNull().default(1),createdAt:integer('created_at').notNull(),role:text('role').notNull().default('operator'),

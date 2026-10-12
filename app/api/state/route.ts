@@ -4,13 +4,14 @@ import {readCatalog} from '@/db/catalog';
 import {readInventory,movementWrites} from '@/db/inventory';
 import {currentStock,openingStock,inventoryAfter,dayInventoryWrites} from '@/lib/inventory';
 import {applyAction,openDay} from '@/lib/model';
+import {openingWrites} from '@/lib/day-opening';
 import {getCurrentUser} from '@/app/auth';
 import {isDayConflict,isStorageFailure} from '@/lib/storage-errors';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 async function state(id:string|null){
  const db=database();
- const list=await db.prepare('SELECT id,date,active FROM days ORDER BY date DESC').all();
+ const list=await db.prepare("SELECT id,date,active FROM days ORDER BY date DESC,json_extract(payload,'$.opened') DESC,id DESC").all();
  const row:any=id?await db.prepare('SELECT * FROM days WHERE id=?').bind(id).first():await db.prepare('SELECT * FROM days WHERE active=1 LIMIT 1').first();
  const inventory=await readInventory();
  return {days:list.results,day:row?currentStock(JSON.parse(row.payload),inventory):null,revision:row?.revision??0,inventory,...await readCatalog()};
@@ -28,20 +29,31 @@ export async function POST(req:Request){
   if(Number(req.headers.get('content-length')??0)>100000)return json({error:'El pedido es demasiado grande.'},413);
   const a:any=await req.json();const db=database();
   if(a.type==='open'){
+   if(typeof a.opId!=='string'||!a.opId||a.opId.length>100)return json({error:'Operación inválida.'},400);
+   const previous:any=await db.prepare('SELECT id FROM days WHERE opening_op_id=?').bind(a.opId).first();
+   if(previous)return json(await state(previous.id));
+   const active:any=await db.prepare('SELECT id,opening_op_id FROM days WHERE active=1').first();
+   if(active?.opening_op_id===a.opId)return json(await state(active.id));
+   if(active)return json({error:'Ya hay una jornada abierta. Se han cargado sus registros.',...await state(active.id)},409);
    const current=await readCatalog();
-   if(a.catalogVersion!==current.catalogVersion)return json({error:'La carta cambió. Actualiza la pantalla y vuelve a abrir la jornada.',...await state(null)},409);
+   if(a.catalogVersion!==current.catalogVersion)return json({error:'La carta cambió y el formulario ya se actualizó. Revisa las cantidades y pulsa Iniciar jornada.',...await state(null)},409);
    const inventory=await readInventory(),opening=openingStock(current.catalog,a.menu,a.stock??{},inventory);
    const d=openDay({...a,stock:opening.stock,prices:undefined},current.catalog);
-   if(typeof a.opId!=='string'||a.opId.length>100)return json({error:'Operación inválida.'},400);
    try {const saved=await db.batch([
-    db.prepare('UPDATE inventory SET quantities=?,revision=revision+1,last_op=? WHERE id=1 AND revision=? AND EXISTS (SELECT 1 FROM catalog_meta WHERE id=1 AND revision=?) AND NOT EXISTS (SELECT 1 FROM days WHERE active=1 OR date=?)').bind(JSON.stringify(opening.quantities),a.opId,inventory.revision,current.catalogVersion,d.date),
-    db.prepare('INSERT INTO days (id,date,active,revision,payload) SELECT ?,?,1,1,? WHERE EXISTS (SELECT 1 FROM inventory WHERE id=1 AND revision=? AND last_op=?) AND NOT EXISTS (SELECT 1 FROM days WHERE active=1 OR date=?)').bind(d.id,d.date,JSON.stringify(d),inventory.revision+1,a.opId,d.date),
+    ...openingWrites(d,inventory,opening.quantities,current.catalogVersion,a.opId).map(s=>db.prepare(s.sql).bind(...s.args)),
     ...movementWrites(inventory,opening.quantities,a.opId,user.username,'Stock inicial al abrir jornada',d.id),
-   ]);if(saved[1].meta.changes!==1)return json({error:'La carta, el inventario o la jornada cambió. Actualiza la pantalla antes de abrir.',...await state(null)},409);}
+   ]);if(saved[1].meta.changes!==1){
+    const retry:any=await db.prepare('SELECT id FROM days WHERE opening_op_id=?').bind(a.opId).first();
+    if(retry)return json(await state(retry.id));
+    const existing=await state(null);
+    return json({error:existing.day?'Ya hay una jornada abierta. Se han cargado sus registros.':'La carta o el inventario cambió y el formulario ya se actualizó. Revisa las cantidades y pulsa Iniciar jornada.',...existing},409);
+   }}
    catch(e){
     if(!isDayConflict(e))throw e;
     const existing=await state(null);
-    return json({error:existing.day&&!existing.day.closed?'Ya hay una jornada abierta. Se han cargado sus registros.':'Ya existe una jornada para esa fecha. Selecciona otra fecha.',...existing},409);
+    const retry:any=await db.prepare('SELECT id FROM days WHERE opening_op_id=?').bind(a.opId).first();
+    if(retry)return json(await state(retry.id));
+    return json({error:existing.day&&!existing.day.closed?'Ya hay una jornada abierta. Se han cargado sus registros.':'La jornada cambió mientras guardabas. Vuelve a iniciar la jornada.',...existing},409);
    }
    return json(await state(d.id));
   }

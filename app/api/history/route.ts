@@ -4,7 +4,7 @@ export const dynamic='force-dynamic';
 export async function GET(){
  try{
   if(!await getCurrentUser())return Response.json({error:'Inicia sesión para consultar el historial.'},{status:401});
-  const records=await database().prepare('SELECT payload FROM days ORDER BY date DESC').all();
+  const records=await database().prepare("SELECT payload FROM days ORDER BY date DESC,json_extract(payload,'$.opened') DESC,id DESC").all();
   return Response.json({days:records.results.map((row:any)=>JSON.parse(row.payload))},{headers:{'Cache-Control':'no-store'}});
  }catch(e){
   console.error(e);
